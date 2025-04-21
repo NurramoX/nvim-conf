@@ -1,5 +1,6 @@
 vim.opt.number = true
 vim.opt.relativenumber = true
+vim.opt.showmode = false
 
 vim.opt.splitbelow = true
 vim.opt.splitright = true
@@ -11,7 +12,13 @@ vim.opt.shiftwidth = 4
 
 vim.opt.scrolloff = 4
 
-vim.opt.clipboard = "unnamedplus"
+vim.schedule(function()
+  vim.opt.clipboard = 'unnamedplus'
+end)
+vim.opt.confirm = true
+
+vim.opt.undofile = true
+
 vim.opt.virtualedit = "block"
 
 vim.opt.inccommand = "split"

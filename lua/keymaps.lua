@@ -2,24 +2,25 @@
 
 
 local keys_to_remove = {
+-- for ghostty 
   "<C-S-h>",
   "<C-S-j>",
   "<C-S-k>",
   "<C-S-l>",
+  "<C-S-a>",
+  "<C-a>",
 
+-- for personal use :D
   "<C-h>",
   "<C-j>",
   "<C-k>",
   "<C-l>",
-
   "<C-S-p>",
   "<C-S-n>",
-  "<C-S-a>",
-  "<C-a>",
   "<C-Space>",
   "<C-Tab>",
-  -- "<C-S-w>",
-  -- "<C-w>",
+  "<C-S-w>",
+  "<C-w>",
   "<C-t>",
   "<C-T>",
   "<C-S-o>",
@@ -50,10 +51,9 @@ vim.keymap.set("n", "<C-l>", "<C-w>l", {noremap = true, silent = true, desc = "G
 vim.keymap.set("n", "<C-j>", "<C-w>j", {noremap = true, silent = true, desc = "Go to last buffer"})
 vim.keymap.set("n", "<C-k>", "<C-w>k", {noremap = true, silent = true, desc = "Go to first buffer"})
 
-vim.keymap.set('n', '<C-b>', function() print('hello world') end)
+-- vim.keymap.set('n', '<C-b>', function() print('hello world') end)
 
 -- user commands
----
 -- Create custom commands for splits with uppercase names
 vim.api.nvim_create_user_command('Hs', function(opts)
   if opts.args and opts.args ~= "" then
@@ -75,5 +75,9 @@ vim.cmd([[
   cnoreabbrev hs Hs
   cnoreabbrev vs Vs
 ]])
----
--- 
+
+-- Clear highlights on search when pressing <Esc> in normal mode
+vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+
+-- Diagnostic keymaps
+vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
