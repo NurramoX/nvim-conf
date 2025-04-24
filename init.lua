@@ -8,10 +8,10 @@ vim.g.have_nerd_font = true
 
 -- globals end --
 
+require("keymaps")
 
 
 -- Set up lazy.nvim
-require("keymaps")
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 
@@ -33,22 +33,29 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup{
-  {
+  ui = {
+    border = "double",
+    size = {
+      width = 0.8,
+      height = 0.8,
+    },
+  },
+  spec = {
+    "folke/zen-mode.nvim",
     {
       "catppuccin/nvim",
-      lazy = false,
       opts = {
         transparent_background = true,
-        flavour = "mocha",
-        custom_highlights = function(colors)
-          return {
-            -- TelescopeBorder = { fg = colors.red, bg = colors.base },
-          }
-        end
+        flavour = "macchiato",
+        highlight_overrides = {
+          macchiato = function(macchiato)
+            return {
+            }
+          end,
+        }
       },
       config = function(_, opts)
         require("catppuccin").setup(opts)
-
         vim.cmd.colorscheme("catppuccin")
       end,
     },
@@ -68,9 +75,6 @@ require("lazy").setup{
         })
       end
     },
-
-
-
     {
       "nvim-telescope/telescope.nvim",
       dependencies = {
@@ -79,8 +83,8 @@ require("lazy").setup{
         "nvim-telescope/telescope-ui-select.nvim",
       },
       config = function()
-        -- Complete setup inside config function to ensure telescope is loaded
-        require('telescope').setup({
+
+        opts = {
           defaults = {
             vimgrep_arguments = {
               "rg",
@@ -90,7 +94,8 @@ require("lazy").setup{
               "--line-number",
               "--column",
               "--smart-case",
-              "--hidden" -- Include hidden files
+              "--hidden", -- Include hidden files
+              "--glob=!**/.git/*"
             },
             mappings = {
               i = {
@@ -110,34 +115,49 @@ require("lazy").setup{
                 ["<C-l>"] = false,
               },
             },
+            file_ignore_patterns = { ".git/" }
           },
           pickers = {
             colorscheme = {
               enable_preview = true
             },
             find_files = {
-              find_command = { "fd", "--type", "f", "--strip-cwd-prefix" },
-              cwd = vim.fn.expand("%:p:h"), -- Start from the current file's directory
-              use_git_root = true, -- This is key - it will traverse up to find the git root
+              find_command = { "fd", "--type", "f", "--strip-cwd-prefix", "--hidden", "--exclude", ".git" },
             },
             live_grep = {
               additional_args = function()
                 return { "--hidden" }
               end,
-              cwd = vim.fn.expand("%:p:h"), -- Start from the current file's directory
-              use_git_root = true, -- This is key - it will traverse up to find the git root
             },
             grep_string = {
-              cwd = vim.fn.expand("%:p:h"),
-              use_git_root = true,
             },
           },
-          -- extensions = {
-          --   ['ui-select'] = {
-          --     require('telescope.themes').get_dropdown(),
-          --   },
-          -- },
-        })
+          buffers = {
+            -- Optional: Sort buffers by MRU and show path relative to git root
+            sort_mru = true,
+            path_display = { "smart" },
+            mappings = {
+              n = {
+                ["dd"] = "delete_buffer",
+              }
+            }
+          },
+          extensions = {
+            ['ui-select'] = {
+              require('telescope.themes').get_dropdown(),
+            },
+            fzf = {
+              fuzzy = true,                    -- false will only do exact matching
+              override_generic_sorter = true,  -- override the generic sorter
+              override_file_sorter = true,     -- override the file sorter
+              case_mode = "smart_case",        -- or "ignore_case" or "respect_case"
+            }
+          },
+        }
+
+
+        -- Complete setup inside config function to ensure telescope is loaded
+        require('telescope').setup(opts)
 
         -- Enable Telescope extensions
         pcall(require('telescope').load_extension, 'fzf')
@@ -162,22 +182,29 @@ require("lazy").setup{
 
         -- Override to always use git root
         vim.keymap.set('n', '<leader>pf', function()
-          builtin.find_files({ cwd = get_git_root() })
+          builtin.find_files({
+            cwd = get_git_root()
+          })
+        end, { desc = 'Search Files in Git Root' })
+        
+        vim.keymap.set('n', '<leader>ps', function()
+          builtin.live_grep({
+            prompt_title = 'Live Grep in Git Files',
+            cwd = get_git_root()
+          })
         end, { desc = 'Search Files in Git Root' })
 
         vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
 
         vim.keymap.set('n', '<leader>sw', function()
-          builtin.grep_string({ cwd = get_git_root() })
+          builtin.grep_string({
+            cwd = get_git_root()
+          })
         end, { desc = '[S]earch current [W]ord in Git Root' })
-
-        vim.keymap.set('n', '<leader>sg', function()
-          builtin.live_grep({ cwd = get_git_root() })
-        end, { desc = '[S]earch by [G]rep in Git Root' })
 
         vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
         vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
-        vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
+        vim.keymap.set('n', '<leader>rs', builtin.oldfiles, { desc = 'Ssarch Recent Files ("." for repeat)' })
         vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
 
         -- Slightly advanced example of overriding default behavior and theme
